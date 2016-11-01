@@ -2,7 +2,6 @@ package sat;
 
 import immutable.EmptyImList;
 import immutable.ImList;
-import immutable.NonEmptyImList;
 import sat.formula.Clause;
 import sat.formula.Formula;
 import sat.formula.NegLiteral;
@@ -15,27 +14,30 @@ import java.io.*;
  */
 public class DIMACSParser {
 
-    ImList<Clause> populatedImList;
-
+    private ImList<Clause> populatedImList;
+    private boolean imListNotPopulated = true;
 
     /**
      * This method must be called after calling getClauseList() so that populatedImList has been populated.
      *
-     * @param cnf_inp
      * @return Formula needed by the SAT Solver
      */
-    public Formula getFormula(File cnf_inp) {
-        return parseFormula(populatedImList);
+    public Formula getFormula() throws RuntimeException {
+        if (imListNotPopulated) {
+            throw new RuntimeException("imList not populated yet. Please run getClauseList beforehand.");
+        }
+        else {
+            return parseFormula(populatedImList);
+        }
     }
 
     /**
      *
-     * @param cnf_inp
+     * @param cnf_inp A CNF file with DIMACS syntax
      * @return populatedImList containing clauses
      */
     public ImList<Clause> getClauseList(File cnf_inp) {
         EmptyImList<Clause> init = new EmptyImList<Clause>();
-        boolean imListNotPopulated = true;
 
         try (BufferedReader br = new BufferedReader(new FileReader(cnf_inp))) {
             String line;
@@ -62,10 +64,10 @@ public class DIMACSParser {
     /**
      * Parse each line in the CNF file to a clause
      *
-     * @param line
+     * @param line A line containing conjunctive clause
      * @return clause
      */
-    public Clause parseClause(String line) {
+    private Clause parseClause(String line) {
         String[] vars = line.split("\\s+");
         Clause c = new Clause();
         for (String l : vars) {
@@ -73,7 +75,7 @@ public class DIMACSParser {
                 c.add(NegLiteral.make(l.substring(1)));
             }
             else {
-                if (l == "0") {
+                if (l.equals("0")) {
                     return c;
                 }
                 else {
@@ -87,10 +89,10 @@ public class DIMACSParser {
     /**
      * Parse clauses into a single formula
      *
-     * @param e
+     * @param e List of clauses
      * @return Formula
      */
-    public Formula parseFormula(ImList<Clause> e) {
+    private Formula parseFormula(ImList<Clause> e) {
         Formula f = new Formula();
         for (Clause c : e) {
             f = f.addClause(c);
