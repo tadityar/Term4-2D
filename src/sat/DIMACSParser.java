@@ -17,6 +17,15 @@ public class DIMACSParser {
     private ImList<Clause> populatedImList;
     private boolean imListNotPopulated = true;
 
+    public DIMACSParser() {
+    }
+
+    public static void main(String[] args) {
+        DIMACSParser p = new DIMACSParser();
+//        System.out.print("-2256 2257 0".matches("^[-].*$"));
+        System.out.print(p.getClauseList(new File("/Users/tadityar/Downloads/Project-2D-starting/sampleCNF/largeSat.cnf")).first().size());
+    }
+
     /**
      * This method must be called after calling getClauseList() so that populatedImList has been populated.
      *
@@ -43,12 +52,15 @@ public class DIMACSParser {
             String line;
             while ((line = br.readLine()) != null) {
                 if (imListNotPopulated) {
-                    if (line.matches("\\d+")) {
+                    if (line.matches("(^\\d.*$)|(^[-]\\d.*$)")) {
+//                        System.out.print(line);
                         populatedImList  = init.add(parseClause(line));
                         imListNotPopulated = false;
                     }
                 }
                 else {
+//                    System.out.println("am here");
+//                    System.out.println(populatedImList);
                     populatedImList.add(parseClause(line));
                 }
             }
@@ -71,8 +83,9 @@ public class DIMACSParser {
         String[] vars = line.split("\\s+");
         Clause c = new Clause();
         for (String l : vars) {
-            if (l.matches("[-]\\d+")) {
+            if (l.matches("^[-]\\d.*$")) {
                 c.add(NegLiteral.make(l.substring(1)));
+                System.out.println(NegLiteral.make(l.substring(1)));
             }
             else {
                 if (l.equals("0")) {
